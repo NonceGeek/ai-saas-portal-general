@@ -12,23 +12,322 @@ import { Search, SearchX } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EditCorpusDialog } from "@/components/dialogs/edit-corpus-dialog";
+import { ContactCouponDialog } from "@/components/dialogs/contact-coupon-dialog";
+import { AgentCard, type Agent } from "@/components/agent-card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { DictionaryNote } from "@/lib/types";
 import WordLyricCardDetail from "./_components/word-lyric-card-detail";
 import YueSongCardDetail from "./_components/yue-song-card-detail";
 import { useAllCategories } from "@/lib/api/category";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 // Type guard for dictionary note
 function isDictionaryNote(note: SearchResult["note"]): note is DictionaryNote {
   return !Array.isArray(note) && "context" in note;
 }
 
+// Task interfaces
+interface Task {
+  id: number;
+  unique_id: string;
+  user: string;
+  solver: string | null;
+  prompt: string;
+  task_type: string;
+  fee: string;
+  fee_unit: string;
+  coupon: string | null;
+  solution: string | null;
+  optimized_prompt: string | null;
+  review: string | null;
+  created_at: string;
+}
+
+interface TasksResponse {
+  data: Task[];
+  pagination: {
+    limit: number;
+    cursor: number | null;
+    nextCursor: number | null;
+    hasMore: boolean;
+  };
+}
+
+// TasksContainer Component
+function TasksContainer() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [showAgentModal, setShowAgentModal] = useState(false);
+  const [loadingAgent, setLoadingAgent] = useState(false);
+
+  const fetchTasks = async (currentCursor: number | null = null) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        limit: "20",
+        ascend: "false",
+      });
+      
+      if (currentCursor !== null) {
+        params.append("cursor", currentCursor.toString());
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/v2/tasks?${params.toString()}`
+      );
+      const data: TasksResponse = await response.json();
+      
+      if (currentCursor === null) {
+        setTasks(data.data);
+      } else {
+        setTasks(prev => [...prev, ...data.data]);
+      }
+      
+      setCursor(data.pagination.nextCursor);
+      setHasMore(data.pagination.hasMore);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      toast.error("Failed to fetch tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const loadMore = () => {
+    if (hasMore && !loading && cursor !== null) {
+      fetchTasks(cursor);
+    }
+  };
+
+  const handleCopyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    setCopiedAddress(address);
+    setTimeout(() => setCopiedAddress(null), 2000);
+  };
+
+  const handleViewAgent = async (uniqueId: string) => {
+    try {
+      setLoadingAgent(true);
+      setShowAgentModal(true);
+      
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/v2/agent?unique_id=${uniqueId}`
+      );
+      const data = await response.json();
+      
+      setSelectedAgent(data);
+    } catch (error) {
+      console.error("Error fetching agent:", error);
+      toast.error("Failed to fetch agent details");
+      setShowAgentModal(false);
+    } finally {
+      setLoadingAgent(false);
+    }
+  };
+
+  if (loading && tasks.length === 0) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-4xl mx-auto space-y-4 pb-8">
+      {tasks.length === 0 ? (
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          No tasks available yet.
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-4">
+            {tasks.map((task) => (
+              <Card key={task.unique_id} className="p-4 hover:shadow-lg transition-shadow">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs font-medium">
+                          {task.task_type}
+                        </span>
+                        {task.solution ? (
+                          <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs font-medium">
+                            ✅ Solved
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded text-xs font-medium">
+                            ⏳ Pending
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        {task.prompt}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {task.fee} {task.fee_unit}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span>User:</span>
+                        <button
+                          onClick={() => handleCopyAddress(task.user)}
+                          className="inline-flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          title={copiedAddress === task.user ? "Copied!" : "Click to copy"}
+                        >
+                          <span className="font-mono">{task.user}</span>
+                          {copiedAddress === task.user ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      {task.solver && (
+                        <div className="flex items-center gap-2">
+                          <span>Solver:</span>
+                          <button
+                            onClick={() => handleViewAgent(task.solver!)}
+                            className="inline-flex items-center gap-1 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                            title="Click to view agent details"
+                          >
+                            <span className="font-mono underline decoration-dotted">{task.solver}&nbsp;&nbsp;👈&nbsp;点击查看 agent 信息！&nbsp;&nbsp;</span>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyAddress(task.solver!);
+                            }}
+                            className="inline-flex items-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                            title={copiedAddress === task.solver ? "Copied!" : "Click to copy address"}
+                          >
+
+                            {copiedAddress === task.solver ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      {new Date(task.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  {task.optimized_prompt && (
+                    <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                      <div className="text-xs font-semibold text-purple-700 dark:text-purple-400 mb-1">
+                        🔧 Optimized Prompt:
+                      </div>
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        {task.optimized_prompt}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {task.solution && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                      <div className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">
+                        ✅ Solution:
+                      </div>
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        {task.solution}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {task.review && (
+                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                      <div className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">
+                        📝 Review:
+                      </div>
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        {task.review}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+          
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <Button
+                onClick={loadMore}
+                disabled={loading}
+                variant="outline"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    Loading...
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Agent Details Modal */}
+      <Dialog open={showAgentModal} onOpenChange={setShowAgentModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              🤖 Agent Details
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {loadingAgent ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              </div>
+            ) : selectedAgent ? (
+              <AgentCard agent={selectedAgent} />
+            ) : (
+              <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+                Failed to load agent details.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
 export default function HomePage() {
   const [searchPrompt, setSearchPrompt] = useState("");
@@ -43,6 +342,7 @@ export default function HomePage() {
   const [editingResult, setEditingResult] = useState<SearchResult | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedDataset, setSelectedDataset] = useState<string>("all");
+  const [showContactModal, setShowContactModal] = useState(false);
   
   // Fetch available categories
   // get all categories from the backend
@@ -172,422 +472,57 @@ export default function HomePage() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <motion.div
-          className="flex flex-col items-center space-y-6 w-full h-full"
-          initial={{ justifyContent: "center", opacity: 0, y: 20 }}
-          animate={{
-            justifyContent:
-              results && results.length > 0 ? "flex-start" : "center",
-            paddingTop: results && results.length > 0 ? "1rem" : "0",
-            opacity: 1,
-            y: 0,
-          }}
+          className="flex flex-col items-center w-full h-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{
             duration: 0.8,
             ease: [0.16, 1, 0.3, 1],
           }}
         >
-          <motion.h1
-            className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 bg-clip-text text-transparent"
-            initial={{ scale: 1, y: 0, opacity: 0 }}
-            animate={{
-              scale: results && results.length > 0 ? 0.8 : 1,
-              y: results && results.length > 0 ? -20 : 0,
-              opacity: 1,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-          >
-             Tasks Board: 任务面板
-          </motion.h1>
-
-          <motion.div
-            className="w-full max-w-2xl space-y-4"
-            initial={{ width: "100%", y: 0, opacity: 0 }}
-            animate={{
-              width: results && results.length > 0 ? "80%" : "100%",
-              y: results && results.length > 0 ? -20 : 0,
-              opacity: 1,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-          >
-            <motion.div
-              className="flex gap-2"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+          {/* Header Section - Fixed */}
+          <div className="flex flex-col items-center space-y-4 mb-6 flex-shrink-0">
+            <motion.h1
+              className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 bg-clip-text text-transparent"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{
-                duration: 0.5,
-                delay: 0.2,
+                duration: 0.8,
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <Input
-                  placeholder="Search Cantonese content..."
-                  value={searchPrompt}
-                  onChange={(e) => setSearchPrompt(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  className="pl-10 h-12 text-lg dark:text-accent-foreground dark:placeholder:text-accent-foreground dark:bg-background"
-                />
-              </div>
-              {/* Dataset selection dropdown */}
-              <Select value={selectedDataset} onValueChange={setSelectedDataset}>
-                <SelectTrigger className="w-[180px] h-12">
-                  <SelectValue placeholder="Select dataset" />
-                </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全局搜索</SelectItem>
-                    {categories
-                      ?.filter((category) => category.if_in_all_data === true)
-                      ?.map((category) => (
-                        <SelectItem key={category.id} value={category.name}>
-                          {category.nickname || category.name}
-                        </SelectItem>
-                      ))}
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={handleSearch}
-                disabled={isPending}
-                className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white h-12 px-6"
-              >
-                {isPending ? "Searching..." : "Search"}
-              </Button>
-              {/* TODO: impl in the future.
-                <Button 
-                onClick={() => router.push('/account/data-annotation')}
-                className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white h-12 px-6 ml-2"
-              >
-                Add
-              </Button> */}
-            </motion.div>
+              Tasks Board: 任务面板
+            </motion.h1>
+            <button
+              onClick={() => setShowContactModal(true)}
+              className="text-blue-500 hover:text-blue-700 transition-colors"
+            >
+              {/* HINT: click this button,to show a modal with two contact way: 微信: 197626581(which is copiable); twitter(x): https://x.com/0xleeduckgo(which is clickable) */}
+              👉 🎟️ 我要优惠券！I want a coupon! 👈
+            </button>
 
-            {/* Hint: Cleaned up homepage content - Search bar only */}
+            <button
+              className="text-blue-500 hover:text-blue-700 transition-colors"
+            >
+              <a href="/agents">
+              👉 🎟️ 我要发任务！I want to post a task! 👈
+              </a>
+            </button>
+          </div>
 
-            {results === null && (
-              <motion.div
-                className="w-full max-w-2xl space-y-4 mb-20"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.3,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-              >
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <Card
-                    className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                    onClick={() => handleExampleSearch("落花流水")}
-                  >
-                    <div className="text-center space-y-1 sm:space-y-2">
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Cantonese Lyrics
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                        落花流水
-                      </p>
-                    </div>
-                  </Card>
-                  <Card
-                    className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                    onClick={() => handleExampleSearch("唔")}
-                  >
-                    <div className="text-center space-y-1 sm:space-y-2">
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                        News
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">唔</p>
-                    </div>
-                  </Card>
-                  <Card
-                    className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                    onClick={() => handleExampleSearch("行")}
-                  >
-                    <div className="text-center space-y-1 sm:space-y-2">
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Single Character
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">行</p>
-                    </div>
-                  </Card>
-                  <Card
-                    className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                    onClick={() => handleExampleSearch("姐姐")}
-                  >
-                    <div className="text-center space-y-1 sm:space-y-2">
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Chinese Words
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">姐姐</p>
-                    </div>
-                  </Card>
-                  <Card
-                    className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                    onClick={() => handleExampleSearch("歡聚一堂")}
-                  >
-                    <div className="text-center space-y-1 sm:space-y-2">
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Video Example
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                        歡聚一堂
-                      </p>
-                    </div>
-                  </Card>
-                  <Card
-                    className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                    onClick={() => handleExampleSearch("帆船")}
-                  >
-                    <div className="text-center space-y-1 sm:space-y-2">
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                        3D Model
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">帆船</p>
-                    </div>
-                  </Card>
-                </div>
-
-                <p className="text-base text-center text-gray-500 underline">
-                  <a href="https://www.aidimsum.com/zh#stats" target="_blank" rel="noopener noreferrer">
-                  👉 查看数据情况 👈
-                  </a>
-                </p>
-              </motion.div>
-            )}
+          {/* Scrollable Tasks Section */}
+          <motion.div
+            className="w-full flex-1 overflow-y-auto px-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400 dark:hover:[&::-webkit-scrollbar-thumb]:bg-gray-500"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.5,
+              delay: 0.2,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
+            <TasksContainer />
           </motion.div>
-
-          <AnimatePresence mode="wait">
-            {results === null && !isPending ? (
-              <motion.div
-                key="initial"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex justify-center items-center h-0"
-              ></motion.div>
-            ) : isPending ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex justify-center items-center h-32"
-              >
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </motion.div>
-            ) : results && results.length > 0 ? (
-              <motion.div
-                key="results"
-                className="w-full max-w-4xl flex-1 overflow-y-auto px-2 pb-10 min-h-0"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {currentResults.map((result, index) => (
-                  <motion.div
-                    key={result.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.5,
-                      delay: index * 0.1,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                  >
-                    {/* HINT: not delete, to render the result here. */}
-                    {result.category !== "粤语曲库" && (
-                        <WordLyricCardDetail
-                          result={result}
-                          setEditingResult={setEditingResult}
-                          setUpdateDialogOpen={setUpdateDialogOpen}
-                          isDictionaryNote={isDictionaryNote}
-                        />
-                      )}
-                    {result.category === "粤语曲库" && (
-                      <YueSongCardDetail result={result} />
-                    )}
-                  </motion.div>
-                ))}
-
-                {totalPages > 1 && (
-                  <motion.div
-                    className="flex justify-center gap-2 mt-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.5,
-                      delay: 0.3,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                  >
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
-                        <Button
-                          key={page}
-                          variant={currentPage === page ? "default" : "outline"}
-                          onClick={() => setCurrentPage(page)}
-                          className="w-10 h-10"
-                        >
-                          {page}
-                        </Button>
-                      )
-                    )}
-                  </motion.div>
-                )}
-
-                {/* 示例卡片 */}
-                {results && results.length > 0 && (
-                  <motion.div
-                    className="mt-12"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-500">
-                        Try other searches
-                      </h3>
-                      <Button
-                        variant="outline"
-                        onClick={handleBackToHome}
-                        className="text-sm"
-                      >
-                        Back to Home
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                      {[
-                        { title: "Cantonese Lyrics", prompt: "落花流水" },
-                        { title: "Chinese Words", prompt: "姐姐" },
-                        { title: "Single Character", prompt: "行" },
-                        { title: "Video Example", prompt: "歡聚一堂" },
-                      ].map(
-                        (example) =>
-                          example.prompt !== searchPrompt && (
-                            <Card
-                              key={example.prompt}
-                              className="p-3 sm:p-4 hover:shadow-lg cursor-pointer hover:bg-primary/5 dark:hover:bg-gray-800 transition-colors duration-200 h-24 sm:h-28 flex items-center justify-center"
-                              onClick={() => {
-                                if (isPending) return;
-                                setResults(null);
-                                handleExampleSearch(example.prompt);
-                              }}
-                            >
-                              <div className="text-center space-y-1 sm:space-y-2">
-                                <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {example.title}
-                                </h3>
-                                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                                  {example.prompt}
-                                </p>
-                              </div>
-                            </Card>
-                          )
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
-            ) : (
-              results &&
-              results.length === 0 && (
-                <motion.div
-                  className="w-full max-w-4xl text-center py-12"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800">
-                      <SearchX className="h-8 w-8 text-gray-500 dark:text-gray-400" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        No results found
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                        We couldn&apos;t find any matches for &quot;
-                        {searchPrompt}&quot;. Try searching with different
-                        keywords or check out our example searches below.
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={handleBackToHome}
-                        className="mt-4"
-                      >
-                        返回首页
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6">
-                      <Card
-                        className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                        onClick={() => handleExampleSearch("淡淡交會過")}
-                      >
-                        <div className="text-center space-y-1 sm:space-y-2">
-                          <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Cantonese Lyrics
-                          </h3>
-                          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                            淡淡交會過
-                          </p>
-                        </div>
-                      </Card>
-                      <Card
-                        className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                        onClick={() => handleExampleSearch("姐姐")}
-                      >
-                        <div className="text-center space-y-1 sm:space-y-2">
-                          <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Chinese Words
-                          </h3>
-                          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                            姐姐
-                          </p>
-                        </div>
-                      </Card>
-                      <Card
-                        className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                        onClick={() => handleExampleSearch("行")}
-                      >
-                        <div className="text-center space-y-1 sm:space-y-2">
-                          <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Single Character
-                          </h3>
-                          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">行</p>
-                        </div>
-                      </Card>
-                      <Card
-                        className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 h-24 sm:h-28 flex items-center justify-center"
-                        onClick={() => handleExampleSearch("歡聚一堂")}
-                      >
-                        <div className="text-center space-y-1 sm:space-y-2">
-                          <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Video Example
-                          </h3>
-                          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                            歡聚一堂
-                          </p>
-                        </div>
-                      </Card>
-                    </div>
-                  </div>
-                </motion.div>
-              )
-            )}
-          </AnimatePresence>
         </motion.div>
       </motion.div>
       {/* Update Dialog */}
@@ -595,6 +530,12 @@ export default function HomePage() {
         open={updateDialogOpen}
         onOpenChange={setUpdateDialogOpen}
         editingResult={editingResult}
+      />
+      
+      {/* Contact Coupon Dialog */}
+      <ContactCouponDialog 
+        isOpen={showContactModal} 
+        onClose={() => setShowContactModal(false)} 
       />
     </>
   );
