@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ContactCouponDialog } from "@/components/dialogs/contact-coupon-dialog";
 
 interface Agent {
   id: number;
@@ -53,32 +54,40 @@ function AgentCard({ agent }: { agent: Agent }) {
 
   // Convert cron expression to human-readable format
   const cronToReadable = (cron: string) => {
-    const parts = cron.split(' ');
+    const parts = cron.split(" ");
     if (parts.length !== 5) return cron;
-    
+
     const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
-    
-    let result = '';
-    
+
+    let result = "";
+
     // Handle hour
-    if (hour === '*') {
-      result = 'Every hour';
+    if (hour === "*") {
+      result = "Every hour";
     } else {
-      result = `At ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+      result = `At ${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
     }
-    
+
     // Handle day
-    if (dayOfMonth !== '*') {
+    if (dayOfMonth !== "*") {
       result += ` on day ${dayOfMonth}`;
     }
-    
-    if (dayOfWeek !== '*') {
-      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    if (dayOfWeek !== "*") {
+      const days = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
       result += ` on ${days[parseInt(dayOfWeek)] || dayOfWeek}`;
-    } else if (dayOfMonth === '*' && month === '*') {
-      result += ' every day';
+    } else if (dayOfMonth === "*" && month === "*") {
+      result += " every day";
     }
-    
+
     return result;
   };
 
@@ -93,14 +102,23 @@ function AgentCard({ agent }: { agent: Agent }) {
             {agent.type}
           </span>
         </div>
-        
+
         <div className="text-gray-600 dark:text-gray-300 mb-3 max-h-24 overflow-y-auto pr-2 text-sm [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-gray-700">
           <ReactMarkdown
             components={{
-              p: ({ node, ...props }) => <p className="mb-1 last:mb-0" {...props} />,
-              strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
+              p: ({ node, ...props }) => (
+                <p className="mb-1 last:mb-0" {...props} />
+              ),
+              strong: ({ node, ...props }) => (
+                <strong className="font-semibold" {...props} />
+              ),
               em: ({ node, ...props }) => <em className="italic" {...props} />,
-              code: ({ node, ...props }) => <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs" {...props} />,
+              code: ({ node, ...props }) => (
+                <code
+                  className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs"
+                  {...props}
+                />
+              ),
               br: () => <br />,
             }}
           >
@@ -155,19 +173,46 @@ function AgentCard({ agent }: { agent: Agent }) {
               <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs font-medium uppercase">
                 {agent.addr_type}
               </span>
-              <button 
+              <button
                 onClick={handleCopyAddr}
                 className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-mono inline-flex items-center gap-1"
                 title={copiedAddr ? "Copied!" : "Click to copy full address"}
               >
                 {agent.addr.slice(0, 6)}...{agent.addr.slice(-4)}
                 {copiedAddr ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect
+                      x="9"
+                      y="9"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      ry="2"
+                    ></rect>
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                   </svg>
                 )}
@@ -178,36 +223,63 @@ function AgentCard({ agent }: { agent: Agent }) {
               <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs font-medium uppercase">
                 {agent.owner_addr_type}
               </span>
-              <button 
+              <button
                 onClick={handleCopyOwner}
                 className="text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-mono inline-flex items-center gap-1"
                 title={copiedOwner ? "Copied!" : "Click to copy full address"}
               >
                 {agent.owner_addr.slice(0, 6)}...{agent.owner_addr.slice(-4)}
                 {copiedOwner ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect
+                      x="9"
+                      y="9"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      ry="2"
+                    ></rect>
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                   </svg>
                 )}
               </button>
             </div>
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            {agent.crons && agent.crons.length > 0 && (
-              <div className="mt-3">
-                <button
-                  onClick={() => setShowSchedule(true)}
-                  className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  📅 View Schedule - 查看日程
-                </button>
-              </div>
-            )}
-            <br></br>
+              {agent.crons && agent.crons.length > 0 && (
+                <div className="mt-3">
+                  <button
+                    onClick={() => setShowSchedule(true)}
+                    className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    📅 View Schedule - 查看日程
+                  </button>
+                </div>
+              )}
+              <br></br>
               <button
                 onClick={() => {
                   // Navigate to home page with agent parameter or trigger task creation
@@ -252,7 +324,10 @@ function AgentCard({ agent }: { agent: Agent }) {
                   </thead>
                   <tbody>
                     {agent.crons.map((cronJob: any, index: number) => (
-                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-900">
+                      <tr
+                        key={index}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-900"
+                      >
                         <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 font-medium">
                           {cronJob.name}
                         </td>
@@ -286,6 +361,7 @@ function AgentCard({ agent }: { agent: Agent }) {
 export default function LibraryPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -313,10 +389,16 @@ export default function LibraryPage() {
   return (
     <>
       <div className="h-full p-6 overflow-auto">
-      <div className="flex flex-col items-center justify-center w-full mb-8 gap-2">
-          <h1 className="text-4xl font-bold text-center">Agents Market — 智能体劳动力市场</h1>
-          
-          <button className="text-blue-500 hover:text-blue-700">
+        <div className="flex flex-col items-center justify-center w-full mb-8 gap-2">
+          <h1 className="text-4xl font-bold text-center">
+            Agents Market — 智能体劳动力市场
+          </h1>
+
+          <button
+            onClick={() => setShowContactModal(true)}
+            className="text-blue-500 hover:text-blue-700"
+          >
+            {/* TODO: click this button,to show a modal with two contact way: 微信: 197626581(which is copiable); twitter(x): https://x.com/0xleeduckgo(which is clickable) */}
             👉 🎟️ 我要优惠券！I want a coupon! 👈
           </button>
         </div>
@@ -360,6 +442,12 @@ export default function LibraryPage() {
           ))}
         </div>
       </div> */}
+
+      {/* Contact Modal for Coupon */}
+      <ContactCouponDialog 
+        isOpen={showContactModal} 
+        onClose={() => setShowContactModal(false)} 
+      />
     </>
   );
 }
