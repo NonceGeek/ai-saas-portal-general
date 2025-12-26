@@ -18,13 +18,13 @@ export default function Tasks() {
     >
       <div className="flex items-center justify-between border-b-1 border-yellow-200">
         <a href="http://ai-saas.rootmud.xyz" target="_blank" rel="noreferrer">
-          <Image
+          {/* <Image
             src="/logo.png"
             width={64}
             height={64}
             style={{ padding: "12px" }}
             alt="logo"
-          />
+          /> */}
         </a>
         <div className="flex items-center gap-2">
           <NavBar />
