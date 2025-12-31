@@ -295,7 +295,7 @@ export function AgentCard({ agent }: AgentCardProps) {
 
       {/* Schedule Modal */}
       <Dialog open={showSchedule} onOpenChange={setShowSchedule}>
-        <DialogContent className="w-[90vw] max-w-none max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:w-fit sm:max-w-[95vw] max-h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               📅 Agent Schedule - {agent.name}
@@ -303,47 +303,78 @@ export function AgentCard({ agent }: AgentCardProps) {
           </DialogHeader>
           <div className="mt-4">
             {agent.crons && agent.crons.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100 dark:bg-gray-800">
-                      <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold">
-                        Task Name
-                      </th>
-                      <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold">
-                        Schedule(UTC 时间)
-                      </th>
-                      <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold">
-                        Cron Expression(UTC 时间)
-                      </th>
-                      <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold">
-                        Description
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {agent.crons.map((cronJob: any, index: number) => (
-                      <tr
-                        key={index}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-900"
-                      >
-                        <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 font-medium">
-                          {cronJob.name}
-                        </td>
-                        <td className="border border-gray-300 dark:border-gray-700 px-4 py-2">
-                          {cronToReadable(cronJob.cron)}
-                        </td>
-                        <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 font-mono text-sm">
+              <>
+                {/* mobile card layout */}
+                <div className="md:hidden space-y-3">
+                  {agent.crons.map((cronJob: any, index: number) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2"
+                    >
+                      <div className="font-semibold text-lg">
+                        {cronJob.name}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">Schedule:</span>
+                        <span>{cronToReadable(cronJob.cron)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">Cron:</span>
+                        <code className="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
                           {cronJob.cron}
-                        </td>
-                        <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm">
+                        </code>
+                      </div>
+                      {cronJob.description && (
+                        <div className="text-sm text-gray-600 dark:text-gray-300 pt-1 border-t border-gray-200 dark:border-gray-700">
                           {cronJob.description}
-                        </td>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {/* desktop table layout */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="min-w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100 dark:bg-gray-800">
+                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold whitespace-nowrap">
+                          Task Name
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold whitespace-nowrap">
+                          Schedule (UTC)
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold whitespace-nowrap">
+                          Cron Expression
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left font-semibold whitespace-nowrap">
+                          Description
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {agent.crons.map((cronJob: any, index: number) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-900"
+                        >
+                          <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 font-medium">
+                            {cronJob.name}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-700 px-4 py-2">
+                            {cronToReadable(cronJob.cron)}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 font-mono text-sm">
+                            {cronJob.cron}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm">
+                            {cronJob.description}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                 No scheduled tasks for this agent.
@@ -358,4 +389,3 @@ export function AgentCard({ agent }: AgentCardProps) {
 
 // Export the Agent type for reuse
 export type { Agent };
-
