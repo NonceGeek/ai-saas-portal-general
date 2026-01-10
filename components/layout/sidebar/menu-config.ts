@@ -8,7 +8,8 @@ import {
   Settings,
   CreditCard,
   Key,
-  History
+  History,
+  Construction
 } from "lucide-react";
 import { Role } from "@prisma/client";
 
@@ -25,6 +26,7 @@ export const menuItems = [
   { icon: Home, label: "Home", href: "/" },
   { icon: Bot, label: "Agents", href: "/agents" },
   { icon: FileCode2, label: "Docs", href: `${backendUrl}/v2/docs/html` },
+  { icon: Construction, label: "Scaffold-Agent-Workers", href: `https://scaffold-agent-workers.leeduckgo.com` },
   { icon: FileCode2, label: "Whitepaper(cn)", href: `${backendUrl}/v2/whitepaper/cn/html` },
   { icon: FileCode2, label: "Whitepaper(en)", href: `${backendUrl}/v2/whitepaper/en/html` },
 ];

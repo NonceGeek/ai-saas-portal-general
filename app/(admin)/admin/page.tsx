@@ -22,13 +22,13 @@ export default function AdminDashboardPage() {
   const { data: stats, isLoading: loading } = useQuery<DashboardStats>({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const response = await fetch("/api/admin/stats");
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch statistics");
-      }
-
-      return response.json();
+      // API route removed - /api/admin/stats
+      throw new Error("API route /api/admin/stats has been removed");
+      // const response = await fetch("/api/admin/stats");
+      // if (!response.ok) {
+      //   throw new Error("Failed to fetch statistics");
+      // }
+      // return response.json();
     },
   });
 

@@ -17,11 +17,22 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AudioVisualizer from "./_components/audio-visualizer";
 import { Slider } from "@/components/ui/slider2";
-import {
-  corpusInteractApi,
-  IStats,
-  IUpdateInteractProps,
-} from "@/lib/api/corpus-interact";
+// import {
+//   corpusInteractApi,
+//   IStats,
+//   IUpdateInteractProps,
+// } from "@/lib/api/corpus-interact"; // API route removed
+// Define types locally
+type IStats = {
+  views: number;
+  likes: number;
+  bookmarks: number;
+};
+type IUpdateInteractProps = {
+  corpus_unique_id: string;
+  is_liked: boolean;
+  is_bookmarked: boolean;
+};
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { getCorpusItemByUniqueId, SearchResult } from "@/lib/api/search";
 import Lyrics from "./_components/lyrics";
@@ -64,7 +75,9 @@ function YueSong() {
       {
         queryKey: ["corpus-stats", uuid],
         queryFn: async () => {
-          const res = await corpusInteractApi.getStats(uuid);
+          // API route removed - /api/public/corpus/stats
+          throw new Error("API route /api/public/corpus/stats has been removed.");
+          // const res = await corpusInteractApi.getStats(uuid);
           return res;
         },
         staleTime: 0,
@@ -83,11 +96,13 @@ function YueSong() {
       is_liked,
       is_bookmarked,
     }: IUpdateInteractProps) => {
-      return await corpusInteractApi.updateInteract({
-        corpus_unique_id,
-        is_liked,
-        is_bookmarked,
-      });
+      // API route removed - /api/user/corpus/interactions
+      throw new Error("API route /api/user/corpus/interactions has been removed. Corpus interaction is disabled.");
+      // return await corpusInteractApi.updateInteract({
+      //   corpus_unique_id,
+      //   is_liked,
+      //   is_bookmarked,
+      // });
     },
     onSuccess: (result) => {
       queryClient.setQueryData(

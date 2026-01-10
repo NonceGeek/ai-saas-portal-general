@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { corpusInteractApi } from "@/lib/api/corpus-interact";
+// import { corpusInteractApi } from "@/lib/api/corpus-interact"; // API route removed
 import { SearchResult } from "@/lib/api/search";
 import { CirclePlay, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -35,7 +35,8 @@ export default function YueSongCardDetail({
               <CirclePlay
                 className="cursor-pointer"
                 onClick={(e) => {
-                  corpusInteractApi.updateView(result.unique_id);
+                  // API route removed - /api/public/corpus/view
+                  // corpusInteractApi.updateView(result.unique_id);
                   router.push(`/yueSong?id=${result.unique_id}`);
                 }}
               />

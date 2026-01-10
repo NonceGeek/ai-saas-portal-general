@@ -10,9 +10,10 @@ import { useSearch, type SearchResult } from "@/lib/api/search";
 import { toast } from "sonner";
 import { Search, SearchX } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { EditCorpusDialog } from "@/components/dialogs/edit-corpus-dialog";
 import { ContactCouponDialog } from "@/components/dialogs/contact-coupon-dialog";
+import { SubmitTaskDialog } from "@/components/dialogs/submit-task-dialog";
 import { AgentCard, type Agent } from "@/components/agent-card";
 import {
   Dialog,
@@ -20,15 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DictionaryNote } from "@/lib/types";
-import WordLyricCardDetail from "./_components/word-lyric-card-detail";
-import YueSongCardDetail from "./_components/yue-song-card-detail";
-import { useAllCategories } from "@/lib/api/category";
-
-// Type guard for dictionary note
-function isDictionaryNote(note: SearchResult["note"]): note is DictionaryNote {
-  return !Array.isArray(note) && "context" in note;
-}
 
 // Task interfaces
 interface Task {
@@ -40,6 +32,7 @@ interface Task {
   task_type: string;
   fee: string;
   fee_unit: string;
+  fee_format: string;
   coupon: string | null;
   solution: string | null;
   optimized_prompt: string | null;
@@ -179,7 +172,7 @@ function TasksContainer() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                        {task.fee} {task.fee_unit}
+                        {task.fee_format} {task.fee_unit}
                       </div>
                     </div>
                   </div>
@@ -338,16 +331,31 @@ export default function HomePage() {
   const { mutate: search, isPending } = useSearch();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [editingResult, setEditingResult] = useState<SearchResult | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedDataset, setSelectedDataset] = useState<string>("all");
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
   
   // Fetch available categories
   // get all categories from the backend
-  const { data: categories, isLoading: categoriesLoading } = useAllCategories();
   
+  // Check if URL path is /submit_task or has submit_task query parameter
+  useEffect(() => {
+    if (pathname === "/submit_task" || searchParams.get("submit_task") !== null) {
+      setShowTaskModal(true);
+      // If it's a pathname route, redirect to home after opening modal
+      if (pathname === "/submit_task") {
+        router.replace("/", { scroll: false });
+      }
+    }
+    // If there's a coupon parameter, also open the task modal
+    if (searchParams.get("coupon") !== null) {
+      setShowTaskModal(true);
+    }
+  }, [pathname, searchParams, router]);
 
   // 从URL参数读取搜索关键词
   useEffect(() => {
@@ -502,11 +510,10 @@ export default function HomePage() {
             </button>
 
             <button
+              onClick={() => setShowTaskModal(true)}
               className="text-blue-500 hover:text-blue-700 transition-colors"
             >
-              <a href="/agents">
               👉 🎟️ 我要发任务！I want to post a task! 👈
-              </a>
             </button>
           </div>
 
@@ -536,6 +543,13 @@ export default function HomePage() {
       <ContactCouponDialog 
         isOpen={showContactModal} 
         onClose={() => setShowContactModal(false)} 
+      />
+
+      {/* Task Submission Modal */}
+      <SubmitTaskDialog 
+        isOpen={showTaskModal} 
+        onClose={() => setShowTaskModal(false)}
+        initialCoupon={searchParams.get("coupon") || undefined}
       />
     </>
   );

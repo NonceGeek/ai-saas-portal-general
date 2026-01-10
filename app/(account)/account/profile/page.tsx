@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import { Header } from "@/components/layout/header";
-import { useUserProfile, UserProfile } from "@/lib/api/user";
+// import { useUserProfile, UserProfile } from "@/lib/api/user"; // API route removed
+// Define UserProfile type locally
+type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  avatar?: string;
+  image?: string;
+  role?: string;
+  phone?: string;
+  wallet_address?: string;
+};
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -19,16 +31,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUnbindWallet } from "@/lib/api/wallet";
+// import { useUnbindWallet } from "@/lib/api/wallet"; // API route removed
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function ProfilePage() {
   const [bindWalletOpen, setBindWalletOpen] = useState(false);
   
-  // React Query hooks
-  const { data: profile, isLoading: loading, error } = useUserProfile();
-  const unbindWalletMutation = useUnbindWallet();
+  // React Query hooks - API routes removed
+  // const { data: profile, isLoading: loading, error } = useUserProfile();
+  // const unbindWalletMutation = useUnbindWallet();
   const queryClient = useQueryClient();
+  const profile: UserProfile | undefined = undefined;
+  const loading = false;
+  const error: Error | null = new Error("API route /api/user/profile has been removed");
 
   const copyWalletAddress = async (address: string) => {
     try {
@@ -53,8 +68,10 @@ export default function ProfilePage() {
     if (!profile?.ethAddress) return;
 
     try {
-      await unbindWalletMutation.mutateAsync();
-      toast.success("Wallet unbound successfully!");
+      // API route removed - /api/wallet/unbind
+      throw new Error("API route /api/wallet/unbind has been removed. Wallet unbinding is disabled.");
+      // await unbindWalletMutation.mutateAsync();
+      // toast.success("Wallet unbound successfully!");
     } catch (error) {
       console.error("Failed to unbind wallet:", error);
       toast.error(

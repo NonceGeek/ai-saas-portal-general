@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchResult } from "@/lib/api/search";
-import { editApi } from "@/lib/api/edit-corpus";
+// import { editApi } from "@/lib/api/edit-corpus"; // API route removed
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import React, { useState, useEffect } from "react";
@@ -107,16 +107,17 @@ export const ZYZDCorpusDialog = ({
         contributor: "Siri",
       };
 
-      const response = await editApi.updateCorpusItem({
-        uuid: editingResult?.unique_id.toString(),
-        note: noteData,
-        category: editingResult?.category,
-      });
-
-      toast.success(
-        `Corpus data saved successfully. History ID: ${response.history_id}, Status: ${response.status}`
-      );
-      onOpenChange(false);
+      // API route removed - /api/marker/corpus/update
+      throw new Error("API route /api/marker/corpus/update has been removed. Corpus editing is disabled.");
+      // const response = await editApi.updateCorpusItem({
+      //   uuid: editingResult?.unique_id.toString(),
+      //   note: noteData,
+      //   category: editingResult?.category,
+      // });
+      // toast.success(
+      //   `Corpus data saved successfully. History ID: ${response.history_id}, Status: ${response.status}`
+      // );
+      // onOpenChange(false);
     } catch (error) {
       console.error("Save failed:", error);
       toast.error("Failed to save corpus data");

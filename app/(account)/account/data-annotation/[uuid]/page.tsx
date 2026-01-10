@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Volume2, Edit, Eye, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { editApi } from "@/lib/api/edit-corpus";
+// import { editApi } from "@/lib/api/edit-corpus"; // API route removed
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 
@@ -141,20 +141,20 @@ export default function CorpusItemDetailsPage() {
         contributor: user?.name || "Anonymous",
       };
 
-      const response = await editApi.updateCorpusItem({
-        uuid: item.unique_id,
-        note: noteData,
-        category: item.category || "zyzdv2",
-      });
-
-      toast.success(`数据保存成功！历史ID: ${response.history_id}, 状态: ${response.status}`);
-      setIsEditing(false);
-      
-      // Reload item to get updated data
-      const result = await getCorpusItemByUniqueId(uuid);
-      if (result) {
-        setItem(result);
-      }
+      // API route removed - /api/marker/corpus/update
+      throw new Error("API route /api/marker/corpus/update has been removed. Corpus editing is disabled.");
+      // const response = await editApi.updateCorpusItem({
+      //   uuid: item.unique_id,
+      //   note: noteData,
+      //   category: item.category || "zyzdv2",
+      // });
+      // toast.success(`数据保存成功！历史ID: ${response.history_id}, 状态: ${response.status}`);
+      // setIsEditing(false);
+      // // Reload item to get updated data
+      // const result = await getCorpusItemByUniqueId(uuid);
+      // if (result) {
+      //   setItem(result);
+      // }
     } catch (error) {
       console.error("保存失败:", error);
       toast.error("保存数据失败");

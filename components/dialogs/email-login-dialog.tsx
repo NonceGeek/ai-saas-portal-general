@@ -13,7 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { useSendVerificationCode, UserRole } from '@/lib/api/auth';
+// import { useSendVerificationCode, UserRole } from '@/lib/api/auth'; // API route removed
+// Define UserRole type locally
+type UserRole = 'learner' | 'tagger' | 'researcher';
 
 interface EmailLoginDialogProps {
   isOpen: boolean;
@@ -29,7 +31,7 @@ export function EmailLoginDialog({ isOpen, onClose, callbackUrl = '/', role }: E
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const sendVerificationMutation = useSendVerificationCode();
+  // const sendVerificationMutation = useSendVerificationCode(); // API route removed
 
   // 倒计时效果
   useEffect(() => {
@@ -51,20 +53,20 @@ export function EmailLoginDialog({ isOpen, onClose, callbackUrl = '/', role }: E
     }
 
     try {
-      const result = await sendVerificationMutation.mutateAsync({ email, role });
-      
-      if (result.success) {
-        // 开发环境下显示特殊提示
-        if (process.env.NODE_ENV === 'development') {
-          toast.success('Verification code sent to your registered email (development mode)');
-        } else {
-          toast.success('Verification code sent to your email');
-        }
-        setIsCodeSent(true);
-        setCountdown(60); // 开始60秒倒计时
-      } else {
-        toast.error(result.message || 'Failed to send verification code');
-      }
+      // API route removed - /api/auth/send-verification
+      throw new Error("API route /api/auth/send-verification has been removed. Email verification is disabled.");
+      // const result = await sendVerificationMutation.mutateAsync({ email, role });
+      // if (result.success) {
+      //   if (process.env.NODE_ENV === 'development') {
+      //     toast.success('Verification code sent to your registered email (development mode)');
+      //   } else {
+      //     toast.success('Verification code sent to your email');
+      //   }
+      //   setIsCodeSent(true);
+      //   setCountdown(60);
+      // } else {
+      //   toast.error(result.message || 'Failed to send verification code');
+      // }
     } catch (error) {
       console.error('Send code error:', error);
       toast.error('Failed to send verification code');

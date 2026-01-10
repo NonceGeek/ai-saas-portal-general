@@ -7,10 +7,16 @@ import { Heart, Loader, Pause, Play, Search, Star } from "lucide-react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  corpusInteractApi,
-  IUpdateInteractProps,
-} from "@/lib/api/corpus-interact";
+// import {
+//   corpusInteractApi,
+//   IUpdateInteractProps,
+// } from "@/lib/api/corpus-interact"; // API route removed
+// Define types locally
+type IUpdateInteractProps = {
+  unique_id: string;
+  type: 'liked' | 'bookmarked';
+  value: boolean;
+};
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, set } from "date-fns";
 import { Slider } from "@/components/ui/slider2";
@@ -72,11 +78,13 @@ export default function MyRecordPage() {
       is_liked,
       is_bookmarked,
     }: IUpdateInteractProps) => {
-      return await corpusInteractApi.updateInteract({
-        corpus_unique_id,
-        is_liked,
-        is_bookmarked,
-      });
+      // API route removed - /api/user/corpus/interactions
+      throw new Error("API route /api/user/corpus/interactions has been removed. Corpus interaction is disabled.");
+      // return await corpusInteractApi.updateInteract({
+      //   corpus_unique_id,
+      //   is_liked,
+      //   is_bookmarked,
+      // });
     },
   });
 

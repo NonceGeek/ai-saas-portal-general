@@ -14,7 +14,7 @@ import { toast } from 'sonner'
 import { Loader2, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react'
 import { useAppKit } from '@reown/appkit/react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useGetNonce, useBindWallet } from '@/lib/api/wallet'
+// import { useGetNonce, useBindWallet } from '@/lib/api/wallet' // API route removed
 
 interface BindWalletDialogProps {
   open: boolean
@@ -37,9 +37,9 @@ export function BindWalletDialog({ open, onOpenChange, onSuccess }: BindWalletDi
   const { disconnect } = useDisconnect()
   const { open: openAppKit } = useAppKit()
   
-  // React Query hooks
-  const getNonceMutation = useGetNonce()
-  const bindWalletMutation = useBindWallet()
+  // React Query hooks - API routes removed
+  // const getNonceMutation = useGetNonce()
+  // const bindWalletMutation = useBindWallet()
 
   // 监听钱包连接状态变化
   useEffect(() => {
@@ -69,12 +69,14 @@ export function BindWalletDialog({ open, onOpenChange, onSuccess }: BindWalletDi
     if (!connectedAddress) return
     
     try {
-      const data = await getNonceMutation.refetch()
-      if (data.data) {
-        setNonce(data.data.nonce)
-        setMessage(data.data.message)
-        setStep('sign')
-      }
+      // API route removed - /api/wallet/nonce
+      throw new Error("API route /api/wallet/nonce has been removed. Wallet binding is disabled.");
+      // const data = await getNonceMutation.refetch()
+      // if (data.data) {
+      //   setNonce(data.data.nonce)
+      //   setMessage(data.data.message)
+      //   setStep('sign')
+      // }
     } catch (error) {
       console.error('Failed to get nonce:', error)
       setError(error instanceof Error ? error.message : 'Failed to get nonce')
@@ -131,21 +133,21 @@ export function BindWalletDialog({ open, onOpenChange, onSuccess }: BindWalletDi
         )
       })
 
-      // 绑定钱包
-      const result = await bindWalletMutation.mutateAsync({
-        address,
-        signature,
-        nonce
-      })
-
-      setStep('success')
-      toast.success('Wallet bound successfully!')
-      
-      setTimeout(() => {
-        onSuccess(result.address)
-        onOpenChange(false)
-        resetDialog()
-      }, 2000)
+      // 绑定钱包 - API route removed
+      // API route removed - /api/wallet/bind
+      throw new Error("API route /api/wallet/bind has been removed. Wallet binding is disabled.");
+      // const result = await bindWalletMutation.mutateAsync({
+      //   address,
+      //   signature,
+      //   nonce
+      // })
+      // setStep('success')
+      // toast.success('Wallet bound successfully!')
+      // setTimeout(() => {
+      //   onSuccess(result.address)
+      //   onOpenChange(false)
+      //   resetDialog()
+      // }, 2000)
 
     } catch (error) {
       console.error('Failed to bind wallet:', error)

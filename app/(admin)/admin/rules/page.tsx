@@ -81,27 +81,27 @@ async function fetchRuns(params: Record<string, string | number | undefined>) {
     }
   });
 
-  const response = await fetch(`/api/admin/rules/runs?${searchParams.toString()}`, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch runs");
-  }
-
-  return (await response.json()) as AgentRunListResponse;
+  // API route removed - /api/admin/rules/runs
+  throw new Error("API route /api/admin/rules/runs has been removed");
+  // const response = await fetch(`/api/admin/rules/runs?${searchParams.toString()}`, {
+  //   cache: "no-store",
+  // });
+  // if (!response.ok) {
+  //   throw new Error("Failed to fetch runs");
+  // }
+  // return (await response.json()) as AgentRunListResponse;
 }
 
 async function fetchAgents() {
-  const response = await fetch("/api/admin/rules/agents", {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch agents");
-  }
-
-  return (await response.json()) as AgentDescriptor[];
+  // API route removed - /api/admin/rules/agents
+  throw new Error("API route /api/admin/rules/agents has been removed");
+  // const response = await fetch("/api/admin/rules/agents", {
+  //   cache: "no-store",
+  // });
+  // if (!response.ok) {
+  //   throw new Error("Failed to fetch agents");
+  // }
+  // return (await response.json()) as AgentDescriptor[];
 }
 
 type FiltersState = {
@@ -158,22 +158,22 @@ export default function AdminRulesPage() {
     setCompileResult(null);
 
     try {
-      const response = await fetch("/api/admin/rules/compile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ruleText: compileText }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "编译失败");
-      }
-
-      const result = (await response.json()) as { pass: boolean; failureReason?: string };
-      setCompileResult(result);
-      toast.success(result.pass ? "规则编译通过" : "规则编译未通过");
+      // API route removed - /api/admin/rules/compile
+      throw new Error("API route /api/admin/rules/compile has been removed");
+      // const response = await fetch("/api/admin/rules/compile", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({ ruleText: compileText }),
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({}));
+      //   throw new Error(errorData.error || "编译失败");
+      // }
+      // const result = (await response.json()) as { pass: boolean; failureReason?: string };
+      // setCompileResult(result);
+      // toast.success(result.pass ? "规则编译通过" : "规则编译未通过");
     } catch (error) {
       console.error(error);
       toast.error(error instanceof Error ? error.message : "编译失败");
@@ -192,34 +192,34 @@ export default function AdminRulesPage() {
     setIsTriggeringRun(true);
 
     try {
-      const response = await fetch("/api/admin/rules/run", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ruleId: runForm.ruleId,
-          ruleVersion: runForm.ruleVersion || undefined,
-          corpusName: runForm.corpusName,
-          ruleText: runForm.ruleText,
-          agentId: runForm.agentId || undefined,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "触发规则失败");
-      }
-
-      toast.success("已触发规则运行");
-      queryClient.invalidateQueries({ queryKey: ["admin-rule-runs"] });
-      setRunForm({
-        ruleId: "",
-        ruleVersion: "",
-        corpusName: "",
-        ruleText: "",
-        agentId: "",
-      });
+      // API route removed - /api/admin/rules/run
+      throw new Error("API route /api/admin/rules/run has been removed");
+      // const response = await fetch("/api/admin/rules/run", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     ruleId: runForm.ruleId,
+      //     ruleVersion: runForm.ruleVersion || undefined,
+      //     corpusName: runForm.corpusName,
+      //     ruleText: runForm.ruleText,
+      //     agentId: runForm.agentId || undefined,
+      //   }),
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({}));
+      //   throw new Error(errorData.error || "触发规则失败");
+      // }
+      // toast.success("已触发规则运行");
+      // queryClient.invalidateQueries({ queryKey: ["admin-rule-runs"] });
+      // setRunForm({
+      //   ruleId: "",
+      //   ruleVersion: "",
+      //   corpusName: "",
+      //   ruleText: "",
+      //   agentId: "",
+      // });
     } catch (error) {
       console.error(error);
       toast.error(error instanceof Error ? error.message : "触发规则失败");

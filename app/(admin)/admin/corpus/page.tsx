@@ -70,9 +70,11 @@ export default function AdminCorpusPage() {
       if (search) params.append("search", search);
       if (categoryFilter) params.append("category", categoryFilter);
 
-      const response = await fetch(`/api/admin/corpus?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch corpus");
-      return response.json();
+      // API route removed - /api/admin/corpus
+      throw new Error("API route /api/admin/corpus has been removed");
+      // const response = await fetch(`/api/admin/corpus?${params}`);
+      // if (!response.ok) throw new Error("Failed to fetch corpus");
+      // return response.json();
     },
   });
 

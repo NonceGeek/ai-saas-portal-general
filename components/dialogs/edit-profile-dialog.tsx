@@ -11,7 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pencil, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { UserProfile, userApi } from "@/lib/api/user";
+// import { UserProfile, userApi } from "@/lib/api/user"; // API route removed
+// Define UserProfile type locally
+type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  avatar?: string;
+  role?: string;
+};
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -46,19 +55,19 @@ export function EditProfileDialog({
     try {
       let imageUrl = profile.image;
 
-      if (selectedFile) {
-        imageUrl = await userApi.uploadAvatar(selectedFile);
-      }
-
-      const updatedProfile = await userApi.updateProfile({
-        name,
-        image: imageUrl,
-        bio,
-      });
-
-      onProfileUpdate(updatedProfile);
-      setIsOpen(false);
-      toast.success("Profile updated successfully");
+      // API routes removed - /api/user/profile and /api/upload
+      throw new Error("API routes have been removed. Profile editing is disabled.");
+      // if (selectedFile) {
+      //   imageUrl = await userApi.uploadAvatar(selectedFile);
+      // }
+      // const updatedProfile = await userApi.updateProfile({
+      //   name,
+      //   image: imageUrl,
+      //   bio,
+      // });
+      // onProfileUpdate(updatedProfile);
+      // setIsOpen(false);
+      // toast.success("Profile updated successfully");
     } catch (err) {
       toast.error("Failed to update profile");
       console.error(err);

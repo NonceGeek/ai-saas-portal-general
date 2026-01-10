@@ -21,7 +21,15 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Copy, Check, Info } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { userApi, ApiKey } from "@/lib/api/user";
+// import { userApi, ApiKey } from "@/lib/api/user"; // API route removed
+// Define ApiKey type locally
+type ApiKey = {
+  id: string;
+  key: string;
+  name?: string;
+  created_at: string;
+  last_used_at?: string;
+};
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -40,7 +48,11 @@ export default function ApplyPage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["apiKeys", page],
-    queryFn: () => userApi.getApiKeys({ page, limit }),
+    queryFn: () => {
+      // API route removed - /api/user/api-keys
+      throw new Error("API route /api/user/api-keys has been removed. API key management is disabled.");
+      // return userApi.getApiKeys({ page, limit });
+    },
   });
 
   const copyToClipboard = async (text: string) => {

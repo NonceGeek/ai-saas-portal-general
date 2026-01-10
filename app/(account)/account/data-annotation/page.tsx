@@ -10,7 +10,15 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { dataAnnotationApi, CorpusItem } from "@/lib/api/data-annotation";
+// import { dataAnnotationApi, CorpusItem } from "@/lib/api/data-annotation"; // API route removed
+// Define CorpusItem type locally
+type CorpusItem = {
+  id: number;
+  unique_id: string;
+  data: string;
+  category: string;
+  [key: string]: any;
+};
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -42,11 +50,13 @@ export default function DataAnnotationPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await dataAnnotationApi.getCorpusItems(page, itemsPerPage, query || searchQuery);
-      setCorpusData(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalCount(response.pagination.totalCount);
-      setCurrentPage(page);
+      // API routes removed - /api/marker/corpus/items
+      throw new Error("API route /api/marker/corpus/items has been removed. Data annotation is disabled.");
+      // const response = await dataAnnotationApi.getCorpusItems(page, itemsPerPage, query || searchQuery);
+      // setCorpusData(response.data);
+      // setTotalPages(response.pagination.totalPages);
+      // setTotalCount(response.pagination.totalCount);
+      // setCurrentPage(page);
     } catch (error) {
       console.error("Failed to fetch corpus data:", error);
       setError(error instanceof Error ? error.message : "Failed to fetch corpus data");
@@ -78,7 +88,9 @@ export default function DataAnnotationPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await dataAnnotationApi.getCorpusItems(1, itemsPerPage, "");
+      // API routes removed - /api/marker/corpus/items
+      throw new Error("API route /api/marker/corpus/items has been removed. Data annotation is disabled.");
+      // const response = await dataAnnotationApi.getCorpusItems(1, itemsPerPage, "");
       setCorpusData(response.data);
       setTotalPages(response.pagination.totalPages);
       setTotalCount(response.pagination.totalCount);

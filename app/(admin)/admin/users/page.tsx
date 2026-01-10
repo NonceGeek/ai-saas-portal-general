@@ -70,9 +70,11 @@ export default function AdminUsersPage() {
       if (search) params.append("search", search);
       if (roleFilter) params.append("role", roleFilter);
 
-      const response = await fetch(`/api/admin/users?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch users");
-      return response.json();
+      // API route removed - /api/admin/users
+      throw new Error("API route /api/admin/users has been removed");
+      // const response = await fetch(`/api/admin/users?${params}`);
+      // if (!response.ok) throw new Error("Failed to fetch users");
+      // return response.json();
     },
   });
 
@@ -86,12 +88,14 @@ export default function AdminUsersPage() {
       role?: Role;
       isSystemAdmin?: boolean;
     }) => {
-      const response = await fetch("/api/admin/users", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, role, isSystemAdmin }),
-      });
-      if (!response.ok) throw new Error("Failed to update user");
+      // API route removed - /api/admin/users
+      throw new Error("API route /api/admin/users has been removed");
+      // const response = await fetch("/api/admin/users", {
+      //   method: "PATCH",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ userId, role, isSystemAdmin }),
+      // });
+      // if (!response.ok) throw new Error("Failed to update user");
       return response.json();
     },
     onSuccess: () => {
