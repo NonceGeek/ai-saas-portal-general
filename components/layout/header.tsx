@@ -20,6 +20,9 @@ export function Header({ showLogo = true, titleClassName = "" }: HeaderProps) {
   const isHomePage = pathname === "/";
   const { data: session } = useSession();
 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://ai-saas.deno.dev";
+
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-transparent backdrop-blur-md supports-[backdrop-filter]:bg-transparent">
       <div className="container mx-auto px-4 flex h-14 items-center">
@@ -74,7 +77,7 @@ export function Header({ showLogo = true, titleClassName = "" }: HeaderProps) {
           )}
           <Link
             className="flex items-center space-x-2"
-            href="https://ai-saas.deno.dev/v2/whitepaper/cn/html/"
+            href={`${backendUrl}/v2/whitepaper/cn/html/`}
             target="_blank"
             rel="noopener noreferrer"
           >
