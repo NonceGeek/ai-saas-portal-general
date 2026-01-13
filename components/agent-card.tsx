@@ -282,7 +282,7 @@ export function AgentCard({ agent }: AgentCardProps) {
               <button
                 onClick={() => {
                   // Navigate to home page with agent parameter or trigger task creation
-                  window.location.href = `/?agent=${agent.addr}`;
+                  window.location.href = `/?submit_task=true&agent=${agent.unique_id}`;
                 }}
                 className="w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
               >

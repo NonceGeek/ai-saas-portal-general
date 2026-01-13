@@ -17,9 +17,10 @@ interface SubmitTaskDialogProps {
   isOpen: boolean;
   onClose: () => void;
   initialCoupon?: string;
+  initialAgent?: string;
 }
 
-export function SubmitTaskDialog({ isOpen, onClose, initialCoupon }: SubmitTaskDialogProps) {
+export function SubmitTaskDialog({ isOpen, onClose, initialCoupon, initialAgent }: SubmitTaskDialogProps) {
   const [taskForm, setTaskForm] = useState({
     user: "",
     prompt: "",
@@ -41,7 +42,7 @@ export function SubmitTaskDialog({ isOpen, onClose, initialCoupon }: SubmitTaskD
         try {
           setLoadingAgents(true);
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://ai-saas.deno.dev'}/v2/agents`
+            `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://ai-saas.deno.dev'}/v2/agents?actived=true`
           );
           if (!response.ok) {
             throw new Error("Failed to fetch agents");
@@ -64,15 +65,33 @@ export function SubmitTaskDialog({ isOpen, onClose, initialCoupon }: SubmitTaskD
     }
   }, [isOpen]);
 
-  // Set initial coupon value when dialog opens
+  // Set initial coupon and agent values when dialog opens
   useEffect(() => {
-    if (isOpen && initialCoupon) {
-      setTaskForm(prevForm => ({
-        ...prevForm,
-        coupon: initialCoupon,
-      }));
+    if (isOpen) {
+      setTaskForm(prevForm => {
+        const updates: Partial<typeof prevForm> = {};
+        
+        if (initialCoupon) {
+          updates.coupon = initialCoupon;
+        }
+        
+        if (initialAgent) {
+          updates.agent_unique_id = initialAgent;
+          // Find the agent and set task_type to its type
+          const agent = agents.find(a => a.unique_id === initialAgent);
+          if (agent && agent.type) {
+            console.log("Found agent:", agent.type);
+            updates.task_type = agent.type;
+          }
+        }
+        
+        return {
+          ...prevForm,
+          ...updates,
+        };
+      });
     }
-  }, [isOpen, initialCoupon]);
+  }, [isOpen, initialCoupon, initialAgent, agents]);
 
   const handleCheckCoupon = async () => {
     if (!taskForm.coupon.trim()) {
@@ -269,7 +288,7 @@ export function SubmitTaskDialog({ isOpen, onClose, initialCoupon }: SubmitTaskD
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="IMG">Image Generation</option>
-              <option value="TEXT">Text Generation</option>
+              <option value="LLM">Text Generation</option>
               <option value="CODE">Code Generation</option>
               <option value="OTHER">Other</option>
             </select>

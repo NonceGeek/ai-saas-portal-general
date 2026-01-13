@@ -13,7 +13,7 @@ export default function AgentsPage() {
     const fetchAgents = async () => {
       try {
         const response = await fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/v2/agents"
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/v2/agents?actived=true"
         );
         const data = await response.json();
         console.log(data);

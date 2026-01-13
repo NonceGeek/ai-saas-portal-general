@@ -351,6 +351,10 @@ export default function HomePage() {
         router.replace("/", { scroll: false });
       }
     }
+    // if there's a agent parameter, also open the task modal
+    if (searchParams.get("agent") !== null) {
+      setShowTaskModal(true);
+    }
     // If there's a coupon parameter, also open the task modal
     if (searchParams.get("coupon") !== null) {
       setShowTaskModal(true);
@@ -550,6 +554,7 @@ export default function HomePage() {
         isOpen={showTaskModal} 
         onClose={() => setShowTaskModal(false)}
         initialCoupon={searchParams.get("coupon") || undefined}
+        initialAgent={searchParams.get("agent") || undefined}
       />
     </>
   );
