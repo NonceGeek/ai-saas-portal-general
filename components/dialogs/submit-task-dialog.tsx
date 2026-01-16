@@ -194,27 +194,39 @@ export function SubmitTaskDialog({ isOpen, onClose, initialCoupon, initialAgent 
     try {
       setSubmittingTask(true);
       
+      // Build request body based on whether coupon is provided
+      // When coupon is provided, solver is set automatically by the backend
+      const requestBody: Record<string, string | undefined> = {
+        user: taskForm.user,
+        prompt: taskForm.prompt,
+        task_type: taskForm.task_type,
+      };
+      
+      if (taskForm.coupon) {
+        // Task with coupon - solver is set automatically
+        requestBody.coupon = taskForm.coupon;
+      } else {
+        // Basic task without coupon - include fee and fee_unit
+        requestBody.fee = taskForm.fee;
+        requestBody.fee_unit = taskForm.fee_unit;
+      }
+      
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/v2/tasks`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/v2/add_task`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            user: taskForm.user,
-            prompt: taskForm.prompt,
-            task_type: taskForm.task_type,
-            fee: parseFloat(taskForm.fee) || 0,
-            fee_unit: taskForm.fee_unit,
-            coupon: taskForm.coupon || null,
-            agent_unique_id: taskForm.agent_unique_id || null,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
+      
+
       if (!response.ok) {
-        throw new Error("Failed to submit task");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to submit task");
       }
 
       const data = await response.json();
@@ -237,7 +249,7 @@ export function SubmitTaskDialog({ isOpen, onClose, initialCoupon, initialAgent 
       window.location.reload();
     } catch (error) {
       console.error("Error submitting task:", error);
-      toast.error("Failed to submit task");
+      toast.error(error instanceof Error ? error.message : "Failed to submit task");
     } finally {
       setSubmittingTask(false);
     }

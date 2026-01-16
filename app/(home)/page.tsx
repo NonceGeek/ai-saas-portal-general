@@ -158,11 +158,11 @@ function TasksContainer() {
                         </span>
                         {task.solution ? (
                           <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs font-medium">
-                            ✅ Solved
+                            ✅ Solved 已解决
                           </span>
                         ) : (
                           <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded text-xs font-medium">
-                            ⏳ Pending
+                            ⏳ Waiting to be solved 待解决
                           </span>
                         )}
                       </div>
