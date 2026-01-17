@@ -17,9 +17,9 @@ export default function AgentsPage() {
         );
         const data = await response.json();
         console.log(data);
-        // Sort by up_votes descending (most popular first)
+        // Sort by solved_times descending (most solved first)
         const sortedData = (data as Agent[]).sort((a, b) => {
-          return b.up_votes - a.up_votes;
+          return b.solved_times - a.solved_times;
         });
         setAgents(sortedData);
       } catch (error) {
@@ -61,33 +61,6 @@ export default function AgentsPage() {
           </div>
         )}
       </div>
-      {/* TODO: not necessary for now. */}
-      {/* <div className="h-full p-6 overflow-auto">
-        <div className="flex items-center justify-center w-full mb-8">
-          <h1 className="text-4xl font-bold text-center">图书馆</h1>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            {
-              id: 1,
-              title: "全粤语三国演义",
-              author: "李沛聪",
-              coverImage:
-                "https://dimsum-utils.oss-cn-guangzhou.aliyuncs.com/images.jpeg",
-              description:
-                "從《三國演義》原著中精選五十回內容，用粵語方言文字重新演繹，令讀者體會原汁原味的粵語故事。",
-              likes: 0,
-              comments: 0,
-              created_at: "2025-06-19 11:20:58.940891+00",
-              updated_at: "2025-06-19 11:20:58.940891",
-              link: "https://item.jd.com/10069527822270.html",
-            },
-          ].map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
-        </div>
-      </div> */}
 
       {/* Contact Modal for Coupon */}
       <ContactCouponDialog 

@@ -60,8 +60,12 @@ function TasksContainer() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [showAgentModal, setShowAgentModal] = useState(false);
   const [loadingAgent, setLoadingAgent] = useState(false);
+  
+  const searchParams = useSearchParams();
+  // Get agent filter from URL (only when submit_task is not present)
+  const agentFilter = searchParams.get("submit_task") === null ? searchParams.get("agent") : null;
 
-  const fetchTasks = async (currentCursor: number | null = null) => {
+  const fetchTasks = async (currentCursor: number | null = null, solver: string | null = null) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -71,6 +75,11 @@ function TasksContainer() {
       
       if (currentCursor !== null) {
         params.append("cursor", currentCursor.toString());
+      }
+      
+      // Filter by solver (agent unique_id) if provided
+      if (solver) {
+        params.append("solver", solver);
       }
 
       const response = await fetch(
@@ -95,12 +104,16 @@ function TasksContainer() {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    // Reset state when agent filter changes
+    setTasks([]);
+    setCursor(null);
+    setHasMore(true);
+    fetchTasks(null, agentFilter);
+  }, [agentFilter]);
 
   const loadMore = () => {
     if (hasMore && !loading && cursor !== null) {
-      fetchTasks(cursor);
+      fetchTasks(cursor, agentFilter);
     }
   };
 
@@ -140,9 +153,26 @@ function TasksContainer() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-4 pb-8">
+      {/* Filter indicator when filtering by agent */}
+      {agentFilter && (
+        <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+          <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+            <span>🔍</span>
+            <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              Filtering tasks by agent: <span className="font-mono font-medium ">{agentFilter}</span>
+            </span>
+          </div>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="px-3 py-1 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors"
+          >
+            Clear Filter 清除筛选
+          </button>
+        </div>
+      )}
       {tasks.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          No tasks available yet.
+          {agentFilter ? "No tasks found for this agent." : "No tasks available yet."}
         </div>
       ) : (
         <>
@@ -350,14 +380,6 @@ export default function HomePage() {
       if (pathname === "/submit_task") {
         router.replace("/", { scroll: false });
       }
-    }
-    // if there's a agent parameter, also open the task modal
-    if (searchParams.get("agent") !== null) {
-      setShowTaskModal(true);
-    }
-    // If there's a coupon parameter, also open the task modal
-    if (searchParams.get("coupon") !== null) {
-      setShowTaskModal(true);
     }
   }, [pathname, searchParams, router]);
 

@@ -172,56 +172,67 @@ export function AgentCard({ agent }: AgentCardProps) {
               <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs font-medium uppercase">
                 {agent.addr_type}
               </span>
-              <button
-                onClick={handleCopyAddr}
-                className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-mono inline-flex items-center gap-1"
-                title={copiedAddr ? "Copied!" : "Click to copy full address"}
-              >
-                {agent.addr.slice(0, 6)}...{agent.addr.slice(-4)}
-                {copiedAddr ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect
-                      x="9"
-                      y="9"
-                      width="13"
-                      height="13"
-                      rx="2"
-                      ry="2"
-                    ></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                )}
-              </button>
+              {agent.addr === "0x0" ? (
+                <span className="text-gray-500 dark:text-gray-400">
+                  Not set yet 未设置 🐶
+                </span>
+              ) : (
+                <button
+                  onClick={handleCopyAddr}
+                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-mono inline-flex items-center gap-1"
+                  title={copiedAddr ? "Copied!" : "Click to copy full address"}
+                >
+                  {agent.addr.slice(0, 6)}...{agent.addr.slice(-4)}
+                  {copiedAddr ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect
+                        x="9"
+                        y="9"
+                        width="13"
+                        height="13"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-gray-500 dark:text-gray-400">Owner:</span>
               <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs font-medium uppercase">
                 {agent.owner_addr_type}
               </span>
+              {agent.addr === "0x0" ? (
+                <span className="text-gray-500 dark:text-gray-400">
+                  Not set yet 未设置 🐶
+                </span>
+              ) : (
               <button
                 onClick={handleCopyOwner}
                 className="text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-mono inline-flex items-center gap-1"
@@ -266,17 +277,27 @@ export function AgentCard({ agent }: AgentCardProps) {
                   </svg>
                 )}
               </button>
+              )}
             </div>
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              {/* Add a button here as the style of bellow btn but with diff color, and the text is "View History Tasks 查看历史任务", with the link /?agent=agent.unique_id  */}
+              
+              <button
+                onClick={() => {
+                  window.location.href = `/?agent=${agent.unique_id}`;
+                }}
+                className="w-full py-2 px-4 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg mb-3"
+              >
+                👀 View Task History 浏览历史任务
+              </button>
               {agent.crons && agent.crons.length > 0 && (
-                <div className="mt-3">
                   <button
                     onClick={() => setShowSchedule(true)}
                     className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     📅 View Schedule - 查看日程
                   </button>
-                </div>
+
               )}
               <br></br>
               <button
